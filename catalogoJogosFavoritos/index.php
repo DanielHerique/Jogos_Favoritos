@@ -3,6 +3,11 @@ session_start();
 $usuario = $_SESSION["usuario"] ?? null;
 
 include 'dados_fixos.php';
+
+if (isset($_SESSION['logout_message'])) {
+    $alerta = $_SESSION['logout_message'];
+    unset($_SESSION['logout_message']);  // Remove a mensagem após usá-la
+}
 ?>
 
 <!DOCTYPE html>
@@ -16,35 +21,46 @@ include 'dados_fixos.php';
 </head>
 
 <body>
+    <?php if (isset($alerta)): ?>
+        <div class="alerta"><?php echo htmlspecialchars($alerta); ?></div>
+    <?php endif; ?>
+
     <?php include 'header.php'; ?>
 
+
+
     <div class="container">
-        <?php if ($usuario): ?>
+        <?php if ($usuario && isset($_SESSION["boas_vindas"])): ?>
             <h2 class="bem-vindo">Bem-vindo, <?php echo htmlspecialchars($usuario); ?>!</h2>
+            <?php unset($_SESSION["boas_vindas"]);
+            ?>
         <?php endif; ?>
+
+        <h3 class="titulo">Catálogo de Jogos</h3>
+        <div style="text-align: right; margin-bottom: 10px;">
+            <input type="text" id="campo-pesquisa" placeholder="Pesquisar jogo..." style="padding: 8px; width: 250px; border-radius: 8px;">
+        </div>
     </div>
 
-    <h3 class="titulo">Catálogo de Jogos</h3>
-
-    <div class="jogos-container">
+    <div class="jogos-container" id="catalogo-jogos">
         <?php
-
-        foreach ($jogos_fixos as $index => $jogo) {
-            echo "<div class='jogo-card'>";
-            echo "<img src='" . htmlspecialchars($jogo['imagem']) . "' alt='Imagem do jogo' class='jogo-imagem'>";
-            echo "<p class='jogo-nome'>" . htmlspecialchars($jogo['nome']) . "</p>";
-            echo "<button class='botao' onclick='abrirModalFixos($index)'>Ver Mais</button>";
-            echo "</div>";
-        }
-
         if (isset($_SESSION['jogos']) && !empty($_SESSION['jogos'])) {
             foreach ($_SESSION['jogos'] as $index => $jogo) {
-                echo "<div class='jogo-card'>";
+                $id = "usuario-" . $index;
+                echo "<div class='jogo-card' data-nome='" . strtolower($jogo['nome']) . "' id='{$id}'>";
                 echo "<img src='" . htmlspecialchars($jogo['imagem']) . "' alt='Imagem do jogo' class='jogo-imagem'>";
                 echo "<p class='jogo-nome'>" . htmlspecialchars($jogo['nome']) . "</p>";
                 echo "<button class='botao' onclick='abrirModalUsuario($index)'>Ver Mais</button>";
                 echo "</div>";
             }
+        }
+        foreach ($jogos_fixos as $index => $jogo) {
+            $id = "fixo-" . $index;
+            echo "<div class='jogo-card' data-nome='" . strtolower($jogo['nome']) . "' id='{$id}'>";
+            echo "<img src='" . htmlspecialchars($jogo['imagem']) . "' alt='Imagem do jogo' class='jogo-imagem'>";
+            echo "<p class='jogo-nome'>" . htmlspecialchars($jogo['nome']) . "</p>";
+            echo "<button class='botao' onclick='abrirModalFixos($index)'>Ver Mais</button>";
+            echo "</div>";
         }
         ?>
     </div>
@@ -72,14 +88,9 @@ include 'dados_fixos.php';
 
         function abrirModalGeral(jogo) {
             let modal = document.getElementById('modal');
-            let modalTitulo = document.getElementById('modal-titulo');
-            let modalImagem = document.getElementById('modal-imagem');
-            let modalDescricao = document.getElementById('modal-descricao');
-
-            modalTitulo.innerText = jogo.nome;
-            modalImagem.src = jogo.imagem;
-            modalDescricao.innerText = jogo.descricao;
-
+            document.getElementById('modal-titulo').innerText = jogo.nome;
+            document.getElementById('modal-imagem').src = jogo.imagem;
+            document.getElementById('modal-descricao').innerText = jogo.descricao;
             modal.style.display = 'flex';
         }
 
@@ -95,6 +106,20 @@ include 'dados_fixos.php';
                 window.location.href = 'login.php';
             }
         }
+
+        document.getElementById('campo-pesquisa').addEventListener('input', function() {
+            let termo = this.value.toLowerCase();
+            let cards = document.querySelectorAll('.jogo-card');
+
+            cards.forEach(card => {
+                let nome = card.getAttribute('data-nome');
+                if (nome.includes(termo)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
     </script>
 
     <?php include 'footer.php'; ?>
