@@ -6,12 +6,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($usuario === "admin" && $senha === "up@2025") {
         $_SESSION["usuario"] = $usuario;
+        $_SESSION["boas_vindas"] = true;
 
         if (!isset($_SESSION["jogos"])) {
             $_SESSION["jogos"] = [];
         }
 
-        $destino = $_SESSION["origem"] ?? "meus_jogos.php";
+        $destino = $_SESSION["origem"] ?? "index.php";
         unset($_SESSION["origem"]);
 
         header("Location: $destino");
@@ -24,17 +25,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="estilos.css">
 </head>
+
 <body>
     <div class="container login-container">
         <h2>Meu catálogo</h2>
         <br><br><br>
-        <?php if (isset($erro)) { echo "<p class='erro'>" . htmlspecialchars($erro) . "</p>"; } ?>
+        <?php if (isset($erro)) {
+            echo "<p class='erro'>" . htmlspecialchars($erro) . "</p>";
+        } ?>
         <form action="login.php" method="post" class="form-container" onsubmit="salvarJogos()">
             <label>Usuário:</label>
             <input type="text" name="usuario" required><br>
@@ -52,4 +57,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     </script>
 </body>
+
 </html>
